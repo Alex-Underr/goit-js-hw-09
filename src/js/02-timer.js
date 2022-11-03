@@ -1,5 +1,5 @@
 import flatpickr from 'flatpickr';
-import "flatpickr/dist/flatpickr.min.css";
+import 'flatpickr/dist/flatpickr.min.css';
 import 'flatpickr/dist/themes/material_green.css';
 import Notiflix from 'notiflix';
 Notiflix.Report.init({
@@ -9,21 +9,22 @@ Notiflix.Report.init({
 
 const calendar = document.querySelector('input#datetime-picker');
 const btnStart = document.querySelector('[data-start]');
-  const daysData = document.querySelector('[data-days]');
-  const hoursData = document.querySelector('[data-hours]');
-  const minutesData = document.querySelector('[data-minutes]');
-  const secondsData = document.querySelector('[data-seconds]');
-let selectedDates = null;
+const daysData = document.querySelector('[data-days]');
+const hoursData = document.querySelector('[data-hours]');
+const minutesData = document.querySelector('[data-minutes]');
+const secondsData = document.querySelector('[data-seconds]');
+
+let selectedDates = 0;
 
 flatpickr(calendar, {
   enableTime: true,
-  dateFormat: 'd-m-Y H:i',
+  dateFormat: 'd-m-Y H:i:s',
   time_24hr: true,
   defaultDate: new Date(),
   minuteIncrement: 1,
-  onClose(selectedDate) {
-    if (selectedDate[0] < Date.now()) {
-      selectedDates = selectedDate[0];
+  onClose([selectedDate]) {
+    selectedDates = selectedDate.getTime();
+    if (selectedDates < Date.now()) {
       btnStart.disabled = true;
       Notiflix.Report.info('Please, choose a date in the future!');
     } else {
@@ -31,6 +32,7 @@ flatpickr(calendar, {
     }
   },
 });
+
 function convertMs(ms) {
   const second = 1000;
   const minute = second * 60;
@@ -40,7 +42,9 @@ function convertMs(ms) {
   const days = addLeadingZero(Math.floor(ms / day));
   const hours = addLeadingZero(Math.floor((ms % day) / hour));
   const minutes = addLeadingZero(Math.floor(((ms % day) % hour) / minute));
-  const seconds = addLeadingZero(Math.floor((((ms % day) % hour) % minute) / second));
+  const seconds = addLeadingZero(
+    Math.floor((((ms % day) % hour) % minute) / second)
+  );
 
   return { days, hours, minutes, seconds };
 }
@@ -52,19 +56,23 @@ const timer = {
   isActive: false,
   start() {
     if (this.isActive) {
-      return
+      return;
     }
     this.isActive = true;
-    // const selectedDates = new Date(calendar.value).getTime();
-
     this.intervalId = setInterval(() => {
       const currentTime = Date.now();
       const deltaTime = selectedDates - currentTime;
       const remainTime = convertMs(deltaTime);
       this.updateClock(remainTime);
+      if (deltaTime <= 1000) {
+        this.stop();
+        return;
+      }
     }, 1000);
   },
-  
+  stop() {
+    clearInterval(this.intervalId);
+  },
   updateClock({ days, hours, minutes, seconds }) {
     daysData.textContent = days;
     hoursData.textContent = hours;
@@ -74,4 +82,3 @@ const timer = {
 };
 
 btnStart.addEventListener('click', timer.start.bind(timer));
-
