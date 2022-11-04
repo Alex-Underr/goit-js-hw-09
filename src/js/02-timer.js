@@ -17,6 +17,7 @@ const secondsData = document.querySelector('[data-seconds]');
 let selectedDates = 0;
 
 flatpickr(calendar, {
+  enableSeconds: true,
   enableTime: true,
   dateFormat: 'd-m-Y H:i:s',
   time_24hr: true,
